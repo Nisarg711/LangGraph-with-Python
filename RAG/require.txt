@@ -1,0 +1,4 @@
+langchain-core
+sentence_transformers
+chromadb
+faiss-cpu
