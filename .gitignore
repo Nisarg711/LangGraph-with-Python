@@ -32,3 +32,5 @@ env/
 *~
 .DS_Store
 data/vectorstore/
+*.pckl
+debugging_Langsmith/.langgraph_api/
