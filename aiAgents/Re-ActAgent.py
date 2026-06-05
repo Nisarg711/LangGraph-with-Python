@@ -53,7 +53,7 @@ userinp=input("Enter user message: ")
 
 while userinp!="exit":
     result = app.invoke({"messages": [HumanMessage(content=userinp)]})   
-    print(result)
+    # print(result)
     # Print AI messages
     for msg in result["messages"]:
         if isinstance(msg, AIMessage):

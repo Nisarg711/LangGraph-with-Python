@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from langgraph.graph.message import add_messages
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
+from langgraph.graph import START,END
 
 load_dotenv()
 
@@ -55,38 +56,38 @@ def our_agent(state: schema) -> schema:
 
     ai_msg = llm.invoke(messages)
     print(f"\n🤖 AI: {ai_msg.content}")
+    print(f"Tools: {ai_msg.tool_calls}")
     return {"messages": [ai_msg]}
 
 
   
-def should_continue(state: schema) -> str:
+def should_continue(state:schema)->str:
     for msg in reversed(state["messages"]):
-        if isinstance(msg, ToolMessage):
-            if msg.content.startswith("Successfully saved"):
+        if( isinstance(msg,ToolMessage)):
+            if(msg.content.startswith("Successfully saved")):
                 return "end"
             return "continue"
-
+        
     return "continue"
+        
+
 
 
 
 graph=StateGraph(schema)
 graph.add_node("agent_node",our_agent)
-graph.set_entry_point("agent_node")
 tool_node=ToolNode(tools=tools)
-graph.add_node("tool_node",tool_node)  
-graph.add_edge("agent_node","tool_node")#In previous code, we didn't need this edge since
+graph.add_node("tool_node",tool_node)
+graph.add_edge(START,"agent_node")
+graph.add_edge("agent_node","tool_node") #In previous code, we didn't need this edge since
                 #the conditional check was at agent node itself while in this case, its at toolnode
-
 graph.add_conditional_edges("tool_node",should_continue,
                             {
                                 "continue":"agent_node",
                                 "end":END
                             })
 
-
 app=graph.compile()
-
 result=app.invoke({"messages":[]})
 print(result)
 

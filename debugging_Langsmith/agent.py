@@ -1,54 +1,54 @@
-from typing import Annotated,TypedDict
-from langgraph.graph import StateGraph,START,END
-from langgraph.graph.message import add_messages
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage,SystemMessage,AIMessage,BaseMessage
-from langchain_core.tools import tool
+from langgraph.graph import StateGraph, START,END
+from langgraph.graph.message import add_messages
+from typing import Annotated, List,TypedDict
 from langgraph.prebuilt import ToolNode
+from langchain_core.tools import tool
+from dotenv import load_dotenv
 import os
-from dotenv import load_dotenv 
-load_dotenv()
 
-os.environ["LANGSMITH_TRACING"]="true"
+
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGSMITH_PROJECT"]="FIRSTPROJECT"
 
-class schema(TypedDict):
+
+class state(TypedDict):
     messages:Annotated[list[BaseMessage],add_messages]
 
 
-#GRaph with tool calls
 def make_graph():
     @tool
     def add(a:int,b:int)->int:
-        """Add two numbers"""
+        """Add two numbers together and return the sum."""
         return a+b
 
     tools=[add]
+    llm=ChatGroq(model="llama-3.1-8b-instant").bind_tools(tools)
+
+    def llm_model(state:state)->state:
+        res=llm.invoke(state["messages"])
+        return {"messages":[res]}
+
+    def where_to_go(state:state)->str:
+        last_msg=state["messages"][-1]
+        if last_msg.tool_calls:
+            return "call_tool"
+        return "end"
+    
+    graph=StateGraph(state)
+    graph.add_node("llm",llm_model)
+    graph.add_edge(START,"llm")
     tool_node=ToolNode(tools)
-    llm=ChatGroq(model='llama-3.1-8b-instant')
-    llm_bind_tools=llm.bind_tools(tools)
-
-
-    def llm_func(state:schema)->schema:
-        return {"messages":[llm_bind_tools.invoke(state["messages"])]}
-
-    def where_to_go(state:schema)->str:
-        if not state["messages"][-1].tool_calls:
-            return "end"
-        return "tools"
-
-
-    graph=StateGraph(schema)
-    graph.add_node("llm_node",llm_func)
-    graph.set_entry_point("llm_node")
     graph.add_node("tool_node",tool_node)
-    graph.add_conditional_edges("llm_node",where_to_go,
+    graph.add_conditional_edges("llm",where_to_go,
                                 {
-                                    "end":END,
-                                    "tools":"tool_node"
+                                 "call_tool":"tool_node",
+                                 "end":END   
                                 })
-    graph.add_edge("tool_node","llm_node")
+    graph.add_edge("tool_node","llm")
     app=graph.compile()
     return app
 
 tool_agent=make_graph()
+
