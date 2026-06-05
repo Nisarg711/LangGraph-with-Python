@@ -32,17 +32,17 @@ if 'message' not in st.session_state:
     # with st.chat_message("ai"):
     #     st.text("This is a response from the AI: " + userinp)
 
-#When user presses enter, execution goes to top, and then when it reaches userinp, 
-#it is initialised with the new input, and then it is added to the session state, and
-#  then it is displayed in the chat interface. so for loop is placed here.
+for msg in st.session_state['message']:
+    with st.chat_message(msg['role']):
+        st.text(msg['content'])
 
 config={"configurable":{"thread_id":"4"}}
 userinp=st.chat_input("Type your message here...")
 if userinp:
     res=app.invoke({'message':[HumanMessage(content=userinp)]},config=config)
     st.session_state['message'].append({'role': 'user', 'content': userinp})
+    with st.chat_message("user"):
+        st.text(userinp)
     st.session_state['message'].append({'role':'assistant','content':res['message'][-1].content})
-
-for msg in st.session_state['message']:
-    with st.chat_message(msg['role']):
-        st.text(msg['content'])
+    with st.chat_message("assistant"):
+        st.text(res['message'][-1].content)

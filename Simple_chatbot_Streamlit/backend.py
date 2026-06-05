@@ -27,3 +27,7 @@ config={'configurable':{"thread_id":"1"}}
 
 memory=InMemorySaver()
 app=graph.compile(checkpointer=memory)
+
+# # gen=app.stream({'message':[HumanMessage(content="What is the capital of France?")]},config=config,stream_mode="messages")
+# for msg_chunk,metadata in app.stream({'message':[HumanMessage(content="What is the capital of France?")]},config=config,stream_mode="messages"):
+#     print(msg_chunk.content)
