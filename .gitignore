@@ -35,3 +35,4 @@ data/vectorstore/
 *.pckl
 debugging_Langsmith/.langgraph_api/
 sqliteDB
+sqliteDB-*

@@ -9,7 +9,14 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 
-connectionobj=sqlite3.connect(database='Simple_chatbot_Streamlit/sqlite/sqliteDB',check_same_thread=False)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "sqliteDB")
+
+connectionobj = sqlite3.connect(
+    DB_PATH,
+    check_same_thread=False
+)
+
 memory=SqliteSaver(conn=connectionobj)
 # We need to create a sqlite db and connect this checkptr to it
 #Since we are going to handle multiple threads, and sqlite db uses only one thread and can use
@@ -74,12 +81,17 @@ app=graph.compile(checkpointer=memory)
 # res=app.invoke({'message':[HumanMessage(content='Hi there myself NB')]},config=config)
 # res=app.invoke({'message':[HumanMessage(content='Hi what was my last question')]},config=config)
 # print(res['message'][-1])
-res=app.invoke({'message':[HumanMessage(content="list out our conversations so far")]},config=config)
-print(res['message'][-1].content)
+# res=app.invoke({'message':[HumanMessage(content="list out our conversations so far")]},config=config)
+# print(res['message'][-1].content)
 
+# genobj=memory.list(None) #Tells the number of checkpoints in a particular thread or all threads depending on
+            #what we specify, when None para pass, it means give all checkpointers
 
-
-
-# # gen=app.stream({'message':[HumanMessage(content="What is the capital of France?")]},config=config,stream_mode="messages")
-# for msg_chunk,metadata in app.stream({'message':[HumanMessage(content="What is the capital of France?")]},config=config,stream_mode="messages"):
-#     print(msg_chunk.content)
+def retrieve_all_threads():
+    allthreads=set()
+    # print(genobj)  #Gives <generator object SqliteSaver.list at 0x124f17c40>
+    for checkptr in memory.list(None):
+        # print(checkptr.config['configurable']['thread_id'])
+        allthreads.add(checkptr.config['configurable']['thread_id'])
+    lis=list(allthreads)
+    return lis
