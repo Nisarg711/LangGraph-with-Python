@@ -1,4 +1,6 @@
 langchain-core
+langchain-huggingface
 sentence_transformers
 chromadb
 faiss-cpu
+typesense
