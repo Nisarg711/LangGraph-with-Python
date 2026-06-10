@@ -1,0 +1,4 @@
+langgraph
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
+langchain_groq
