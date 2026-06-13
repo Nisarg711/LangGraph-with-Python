@@ -1,4 +1,4 @@
-services:
+services: #Here we specify the names of the containers we are running
   postgres:
     image: pgvector/pgvector:pg16
     environment:
