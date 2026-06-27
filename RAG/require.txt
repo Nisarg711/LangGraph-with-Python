@@ -4,3 +4,4 @@ sentence_transformers
 chromadb
 faiss-cpu
 typesense
+rank_bm25
